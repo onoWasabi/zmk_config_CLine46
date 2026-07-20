@@ -67,8 +67,11 @@
     input-processors =<&mouse_runtime_input_processor>,
         //<&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>;         //Y軸反転
         //<&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,        //X軸とY軸の入れ替え
-        <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,       //X軸反転
-        <&zip_temp_layer 2 1000>;                            //オートマウスレイヤー(keyball39 AML相当): ボール操作で layer2(MOUSE) を1秒被せる
+        <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>;       //X軸反転
+        // NOTE: zip_temp_layer(オートマウスレイヤー) は cormoran の runtime-input-processor
+        // モジュールが zmk_keymap_layer_activate の引数不一致でビルド不可のため無効のまま。
+        // マウス面(layer2)は親指(lt 2 INT_MUHENKAN 長押し)で手動で出せる。要調査で後日AML化。
+        //<&zip_temp_layer 2 1000>;
 
 
     scroller {
