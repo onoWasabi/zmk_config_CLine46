@@ -15,7 +15,10 @@ manifest:
     # ZMK: DYA Studio 用カスタム RPC サブシステム付き cormoran fork
     - name: zmk
       remote: cormoran
-      revision: v0.3-branch+dya
+      # v0.3-branch+dya の 2026-05-01 known-good 時点にピン留め。cormoran モジュール群を
+      # revision:main のまま追従させると zmk_keymap_layer_activate の引数不一致でR側が
+      # ビルド不可になる(upstream drift)ため、zmk とモジュールを同一時点へ固定する。
+      revision: e5397fd8588d691f7dae08c1f9f55667e38be287
       import: app/west.yml
     - name: zmk-feature-non-lipo-battery-management
       remote: takamaru-fpv
@@ -24,16 +27,16 @@ manifest:
     # DYA Studio モジュール（すべて cormoran リポジトリ）
     - name: zmk-module-ble-management
       remote: cormoran
-      revision: main
+      revision: 4c659c24a7c6810721576146ffca618c37837cea
     - name: zmk-module-battery-history
       remote: cormoran
-      revision: main
+      revision: 307755dd2ad4d320e14de162e8e5ef018f29d929
     - name: zmk-module-settings-rpc
       remote: cormoran
-      revision: main
+      revision: ad1c995cf910ca989ecd6352a1d0b41ccb18362c
     - name: zmk-module-runtime-input-processor
       remote: cormoran
-      revision: main
+      revision: e643dfe30754495c875b19097832378faed26f24
     - name: zmk-pmw3610-driver
       remote: badjeff
       revision: zmk-0.3
