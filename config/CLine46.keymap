@@ -2,6 +2,7 @@
 #include <dt-bindings/zmk/input_transform.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <behaviors.dtsi>
+#include <behaviors/nicola.dtsi>   // NICOLA (親指シフト) behavior: &ni <keycode>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/pointing.h>
@@ -33,6 +34,15 @@
             bindings = <&to 0 &macro_param_1to1 &kp MACRO_PLACEHOLDER>;
             label = "TO_LAYER_0";
         };
+
+        // NICOLA 面(layer 7)へ: 引数キーコード(かな=LANG1)を送ってから &to 7。
+        // to_layer_0 と対。英数側は &to_layer_0 LANG2 で英数レイヤー(0)+IME OFF。
+        to_nicola: to_nicola {
+            compatible = "zmk,behavior-macro-one-param";
+            #binding-cells = <1>;
+            bindings = <&to 7 &macro_param_1to1 &kp MACRO_PLACEHOLDER>;
+            label = "TO_NICOLA";
+        };
     };
 
     behaviors {
@@ -54,11 +64,11 @@
 &kp TAB      &kp Q     &kp W      &kp E     &kp R                &kp T                                            &kp Y     &kp U   &kp I       &kp O          &kp P       &kp LEFT_BRACKET
 &kp LCTRL    &kp A     &kp S      &kp D     &kp F                &kp G                                            &kp H     &kp J   &kp K       &kp L          &kp MINUS   &kp RIGHT_BRACKET
 &kp LSHIFT   &kp Z     &kp X      &kp C     &kp V                &kp B                                            &kp N     &kp M   &kp COMMA   &kp DOT        &mo 3       &kp RSHIFT
-             &kp ESC   &kp LGUI   &kp LALT  &lt 2 INT_MUHENKAN   &lt 1 SPACE   &mt LSFT INT_HENKAN      &kp RET   &kp BSPC                      &kp NUMBER_9   &kp DEL  
+             &kp ESC   &kp LGUI   &kp LALT  &lt 2 INT_MUHENKAN   &lt 1 SPACE   &to_nicola LANG1      &kp RET   &kp BSPC                      &kp NUMBER_9   &kp DEL
             >;
         };
 
-        
+
         layer_1 {
             bindings = <
 &kp CARET   &kp EQUAL      &kp NUMBER_7   &kp NUMBER_8   &kp NUMBER_9   &kp AT_SIGN                            &kp LEFT_PARENTHESIS    &kp DOUBLE_QUOTES   &kp RIGHT_PARENTHESIS   &kp SEMI    &kp EXCLAMATION   &kp QMARK
@@ -114,8 +124,26 @@
 &trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
 &trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
 &trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-         &trans   &trans   &trans   &trans   &trans   &trans      &trans   &trans                     &trans   &trans 
+         &trans   &trans   &trans   &trans   &trans   &trans      &trans   &trans                     &trans   &trans
             >;
+        };
+
+        // NICOLA (親指シフト / 同時打鍵) 入力レイヤー = layer 7。
+        //  文字キー = &ni <QWERTYキーコード>（エンジンがかなへ変換して送出）。
+        //  左親指 pos40 = &ni SPACE（単独打鍵=Space, 押しながら=左親指シフト）。
+        //  右親指 pos42 = &ni RET （単独打鍵=Enter, 押しながら=右親指シフト）。
+        //  英数へ戻す = pos39(無変換) &to_layer_0 LANG2（IME OFF + layer 0）。
+        //  &trans はベース(layer 0)へフォールスルー → Ctrl/GUI/Alt/Tab/括弧/BSPC/DEL は素通り。
+        //  ※keyball39 の _NICOLA 相当。読点「、」等の出力差はモジュール(zmk-nicola)側で処理。
+        nicola_layer {
+            bindings = <
+&trans   &ni Q    &ni W    &ni E              &ni R       &ni T                                       &ni Y     &ni U    &ni I       &ni O     &ni P      &trans
+&trans   &ni A    &ni S    &ni D              &ni F       &ni G                                       &ni H     &ni J    &ni K       &ni L     &ni SEMI   &trans
+&trans   &ni Z    &ni X    &ni C              &ni V       &ni B                                       &ni N     &ni M    &ni COMMA   &ni DOT   &ni FSLH   &trans
+         &trans   &trans   &trans   &to_layer_0 LANG2   &ni SPACE   &trans      &ni RET   &trans                          &trans    &trans
+            >;
+
+            sensor-bindings = <&inc_dec_kp PG_UP PAGE_DOWN>;
         };
     };
 };
