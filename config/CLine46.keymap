@@ -39,14 +39,11 @@
 };
 
 / {
-    combos {
-        compatible = "zmk,combos";
-        // 両端の Tab(pos0 と pos11)同時押し = SYSTEM(BT)面を toggle。誤爆しにくい両手同時押し。
-        sys_layer {
-            bindings = <&tog 6>;
-            key-positions = <0 11>;
-        };
-    };
+    // ※ SYSTEM(BT)面の入口だった コンボ pos0+pos11(&tog 6) は撤去。pos0=左半身(peripheral) /
+    //    pos11=右半身(central) の分割またぎで、コンボ判定は central 側・peripheral の押下は
+    //    BLE 到着時刻でタイムスタンプされる。既定 timeout 50ms に対し接続間隔 15ms
+    //    (CONFIG_BT_PERIPHERAL_PREF_*_INT=12)＋ジッタで間に合わず、実用上ほぼ発火しなかった。
+    //    → FUNC_2(layer3) の pos11 に &mo 6 を置く方式へ(判定窓なし・同一半身)。
 
     macros {
         to_layer_0: to_layer_0 {
@@ -103,10 +100,10 @@
         };
 
         // ---- 3: FUNC_2 (数字/Fキー)  入口=42(&mo 3) ---------------------
-        // pos0=ESC。41=英(NICOLA OFF=&to 0)。40=Alt。
+        // pos0=ESC。41=英(NICOLA OFF=&to 0)。40=Alt。11=SYSTEM(BT)面へ(&mo 6, 押している間だけ)。
         FUNC_2 {
             bindings = <
-&kp ESC   &trans     &kp N7     &kp N8     &kp N9     &trans                                         &trans     &kp F7     &kp F8     &kp F9     &kp TAB    &trans
+&kp ESC   &trans     &kp N7     &kp N8     &kp N9     &trans                                         &trans     &kp F7     &kp F8     &kp F9     &kp TAB    &mo 6
 &trans    &kp TAB    &kp N4     &kp N5     &kp N6     &kp MINUS                                      &trans     &kp F4     &kp F5     &kp F6     &kp LCTRL  &trans
 &trans    &trans     &kp N1     &kp N2     &kp N3     &kp PLUS                                       &kp HOME   &kp F1     &kp F2     &kp F3     &kp RSHIFT &trans
                      &trans     &kp N0     &kp DOT    &trans     &kp LALT  &to_layer_0 LANG2   &trans  &trans   &trans     &trans
@@ -135,8 +132,11 @@
             >;
         };
 
-        // ---- 6: SYSTEM (BT管理)  入口=コンボ pos0+pos11(&tog 6) ---------
-        // AML誤爆を避けるためマウス面から分離。13-17=BTプロファイル0-4 / 25=BTクリア / 26=全消去。
+        // ---- 6: SYSTEM (BT管理)  入口=42(右親指FUNC_2)を押しながら 11(右小指) = &mo 6 ----
+        // 押している間だけ有効。AML誤爆を避けるためマウス面から分離。
+        // 13-17=BTプロファイル0-4(左手ホーム段 A/S/D/F/G位置) / 25=BTクリア / 26=全消去。
+        // &tog ではなく &mo: layer6 の 41/42 は透過→base の &mo 2/3→FUNC面の &to 0/&to 1 に
+        // 落ちるため、&tog だとNICOLA切替を押した瞬間に無言で layer6 が解除されてしまう。
         SYSTEM {
             bindings = <
 &trans  &trans        &trans          &trans        &trans        &trans                        &trans  &trans  &trans  &trans  &trans  &trans
