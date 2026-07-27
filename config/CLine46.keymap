@@ -7,26 +7,36 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/pointing.h>
 
+// =============================================================================
+// CLine46 NICOLA キーマップ — keyball39 の nicola キーマップ(keymap_design_39.md)を
+// CLine46(6列×3段＋親指6L/4R = 46キー)へ忠実移植したもの。
+//
+// 位置番号(0-45):
+//   上段  0  1  2  3  4  5 |  6  7  8  9 10 11
+//   中段 12 13 14 15 16 17 | 18 19 20 21 22 23
+//   下段 24 25 26 27 28 29 | 30 31 32 33 34 35
+//   親指       36 37 38 39 40 41 | 42 43 (●) 44 45     ← ●=ボール(col10-11, スイッチ無し)
+//
+// keyball39 の 5列×3段は各手の【内側5列】へ、CLine46 で増えた【外側1列】
+//   (左 0/12/24, 右 11/23/35) は HHKB風に 上=Tab / ホーム=Ctrl / 下=Shift。
+//   → 外側列は base で定義し、他レイヤーは &trans で継承(全レイヤーで Tab/Ctrl/Shift)。
+//   例外: FUNC_2 の左上角 pos0 = ESC(ご要望: 元 pos1 の ESC を角へ1つ左移動)。
+//
+// レイヤー: 0=QWERTY 1=FUNC_1 2=FUNC_2 3=BALL(手動) 4-6=予備 7=NICOLA
+//   NICOLA面は to_nicola が &to 7 で固定参照するため 7 を維持。
+//
+// ⚠ 実機調整項目(既知): JIS記号(a2j相当)はZMKに変換層が無く ANSIグリフの keycode を
+//   そのまま送る。JIS認識Windowsで記号がズレる場合は該当キーを JIS 相当へ要調整。
+//   AML(ボール移動で自動マウス面)は cormoran モジュール都合でCLine46では不可 →
+//   BALL面(3)は右親指 pos44(&mo 3)長押しで手動。スクロールは要別途調整。
+// =============================================================================
+
 &mt {
     flavor = "balanced";
     quick-tap-ms = <0>;
 };
 
 / {
-    combos {
-        compatible = "zmk,combos";
-
-        tab {
-            bindings = <&kp TAB>;
-            key-positions = <11 12>;
-        };
-
-        shift_tab {
-            bindings = <&kp LS(TAB)>;
-            key-positions = <12 13>;
-        };
-    };
-
     macros {
         to_layer_0: to_layer_0 {
             compatible = "zmk,behavior-macro-one-param";
@@ -35,8 +45,7 @@
             label = "TO_LAYER_0";
         };
 
-        // NICOLA 面(layer 7)へ: 引数キーコード(かな=LANG1)を送ってから &to 7。
-        // to_layer_0 と対。英数側は &to_layer_0 LANG2 で英数レイヤー(0)+IME OFF。
+        // NICOLA 面(layer 7)へ: 引数(かな=LANG1)を送ってから &to 7。英数側は to_layer_0 LANG2。
         to_nicola: to_nicola {
             compatible = "zmk,behavior-macro-one-param";
             #binding-cells = <1>;
@@ -45,104 +54,92 @@
         };
     };
 
-    behaviors {
-        lt_to_layer_0: lt_to_layer_0 {
-            compatible = "zmk,behavior-hold-tap";
-            label = "LAYER_TAP_TO_0";
-            bindings = <&mo>, <&to_layer_0>;
-
-            #binding-cells = <2>;
-            tapping-term-ms = <200>;
-        };
-    };
-
     keymap {
         compatible = "zmk,keymap";
 
+        // ---- 0: QWERTY (英数・ベース) -------------------------------------
+        // 親指: 40=Space / 43=Enter(単独)。41=L1(FUNC_1)/42=L2(FUNC_2) 押している間。
+        //       44=&mo3(BALL/マウス面, AML代替の手動入口)。
         default_layer {
             bindings = <
-&kp TAB      &kp Q     &kp W      &kp E     &kp R                &kp T                                            &kp Y     &kp U   &kp I       &kp O          &kp P       &kp LEFT_BRACKET
-&kp LCTRL    &kp A     &kp S      &kp D     &kp F                &kp G                                            &kp H     &kp J   &kp K       &kp L          &kp MINUS   &kp RIGHT_BRACKET
-&kp LSHIFT   &kp Z     &kp X      &kp C     &kp V                &kp B                                            &kp N     &kp M   &kp COMMA   &kp DOT        &mo 3       &kp RSHIFT
-             &kp ESC   &kp LGUI   &kp LALT  &lt 2 INT_MUHENKAN   &lt 1 SPACE   &to_nicola LANG1      &kp RET   &kp BSPC                      &kp NUMBER_9   &kp DEL
+&kp TAB     &kp Q      &kp W      &kp E      &kp R      &kp T                                          &kp Y      &kp U      &kp I      &kp O      &kp P      &kp TAB
+&kp LCTRL   &kp A      &kp S      &kp D      &kp F      &kp G                                          &kp H      &kp J      &kp K      &kp L      &kp SEMI   &kp LCTRL
+&kp LSHIFT  &kp Z      &kp X      &kp C      &kp V      &kp B                                          &kp N      &kp M      &kp COMMA  &kp DOT    &kp FSLH   &kp RSHIFT
+                       &kp LCTRL  &kp LGUI   &kp LALT   &kp BSPC   &kp SPACE  &mo 1        &mo 2  &kp RET   &mo 3      &kp RSHIFT
             >;
+            sensor-bindings = <&inc_dec_kp PG_UP PAGE_DOWN>;
         };
 
-
-        layer_1 {
+        // ---- 1: FUNC_1 (数字・記号・矢印)  入口=41(L1) --------------------
+        // 記号は a2j 相当(ANSIグリフ)。15=: 25=_ 。42=か(NICOLA ON)/43=Shift。
+        FUNC_1 {
             bindings = <
-&kp CARET   &kp EQUAL      &kp NUMBER_7   &kp NUMBER_8   &kp NUMBER_9   &kp AT_SIGN                            &kp LEFT_PARENTHESIS    &kp DOUBLE_QUOTES   &kp RIGHT_PARENTHESIS   &kp SEMI    &kp EXCLAMATION   &kp QMARK
-&kp MINUS   &kp PLUS       &kp NUMBER_4   &kp NUMBER_5   &kp NUMBER_6   &kp HASH                               &kp LEFT_BRACKET        &kp SINGLE_QUOTE    &kp RIGHT_BRACKET       &kp COLON   &kp AMPERSAND     &kp PIPE
-&kp SLASH   &kp ASTERISK   &kp NUMBER_1   &kp NUMBER_2   &kp NUMBER_3   &kp UNDERSCORE                         &kp SLASH               &kp BACKSLASH       &kp COMMA               &kp DOT     &kp DOLLAR        &kp PERCENT
-            &kp ESC        &kp NUMBER_0   &kp DOT        &trans         &trans           &trans      &kp RET   &kp BSPC                                                            &kp DEL     &trans 
+&trans  &kp QMARK  &kp N7     &kp N8     &kp LBKT   &kp RBKT                                        &kp LPAR   &kp RPAR   &kp EQUAL  &kp BSLH   &kp DEL    &trans
+&trans  &trans     &kp N4     &kp N5     &kp N6     &kp COLON                                       &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &kp SQT    &trans
+&trans  &trans     &kp N1     &kp N2     &kp N3     &kp UNDERSCORE                                  &kp PG_DN  &kp PG_UP  &kp MINUS  &kp GRAVE  &kp ASTERISK  &trans
+                   &trans     &kp N0     &kp DOT    &trans     &trans     &trans     &to_nicola LANG1  &kp RSHIFT  &trans  &trans
             >;
+            sensor-bindings = <&inc_dec_kp PG_UP PAGE_DOWN>;
         };
 
-
-        MOUSE {
+        // ---- 2: FUNC_2 (数字/Fキー)  入口=42(L2) -------------------------
+        // ★pos0 = ESC(元 pos1 の左上ESC を外側角へ1つ左移動)。15=- 25=+ 。
+        //   10/22/34 = Tab/Ctrl/Shift(設計どおり。外側列とは別に右手側へも集約)。
+        //   41=英(NICOLA OFF)。40=Alt。
+        FUNC_2 {
             bindings = <
-&trans   &trans   &kp F7   &kp F8   &kp F9   &kp F10                         &kp LC(Y)   &kp LC(C)        &kp LC(V)        &kp LC(X)         &kp LC(P)   &trans
-&trans   &trans   &kp F4   &kp F5   &kp F6   &kp F11                         &kp LC(Z)   &mkp MB1         &kp UP_ARROW     &mkp MB2          &kp LC(F)   &trans
-&trans   &trans   &kp F1   &kp F2   &kp F3   &kp F12                         &kp LC(A)   &kp LEFT_ARROW   &kp DOWN_ARROW   &kp RIGHT_ARROW   &trans      &trans
-         &trans   &trans   &trans   &trans   &trans    &trans      &kp RET   &kp BSPC                                      &kp HOME          &kp END
+&kp ESC   &trans     &kp N7     &kp N8     &kp N9     &trans                                         &trans     &kp F7     &kp F8     &kp F9     &kp TAB    &trans
+&trans    &kp TAB    &kp N4     &kp N5     &kp N6     &kp MINUS                                      &trans     &kp F4     &kp F5     &kp F6     &kp LCTRL  &trans
+&trans    &trans     &kp N1     &kp N2     &kp N3     &kp PLUS                                       &kp HOME   &kp F1     &kp F2     &kp F3     &kp RSHIFT &trans
+                     &trans     &kp N0     &kp DOT    &trans     &kp LALT  &to_layer_0 LANG2   &trans  &trans   &trans     &trans
             >;
         };
 
-
-        SCROLL {
+        // ---- 3: BALL (マウス/BT管理・手動)  入口=44(&mo 3) ---------------
+        // AML不可のため手動。左1/右10=Boot(各半をブートローダへ)。左手にBT管理を追加。
+        //   右手 19/20・31/32 = マウス左/右クリック。スクロールは要別途調整(空き)。
+        BALL {
             bindings = <
-&bt BT_CLR       &trans   &trans         &trans         &trans         &trans                                &trans   &trans   &trans   &trans   &trans   &trans
-&bt BT_CLR_ALL   &trans   &bt BT_SEL 4   &trans         &trans         &trans                                &trans   &trans   &trans   &trans   &trans   &trans
-&trans           &trans   &bt BT_SEL 1   &bt BT_SEL 2   &bt BT_SEL 3   &trans                                &trans   &trans   &trans   &trans   &trans   &trans
-                 &trans   &bt BT_SEL 0   &trans         &trans         &trans   &trans      &studio_unlock   &trans                     &trans   &trans  
+&trans  &bootloader   &trans        &trans        &trans        &trans                           &trans  &trans    &trans    &trans  &trans  &bootloader
+&trans  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                     &trans  &mkp MB1  &mkp MB2  &trans  &trans  &trans
+&trans  &bt BT_CLR    &bt BT_CLR_ALL &trans       &trans        &trans                           &trans  &mkp MB1  &mkp MB2  &trans  &trans  &trans
+                      &trans        &trans        &trans        &trans   &trans  &trans     &trans  &trans   &trans  &trans
             >;
         };
 
+        // ---- 4-6: 予備(透過) ---------------------------------------------
+        layer_4 { bindings = <
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+              &trans &trans &trans &trans &trans &trans   &trans &trans &trans &trans
+        >; };
 
-        layer_4 {
-            bindings = <
-&trans   &trans   &trans         &trans         &trans         &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-&trans   &trans   &bt BT_SEL 4   &trans         &trans         &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-&trans   &trans   &bt BT_SEL 1   &bt BT_SEL 2   &bt BT_SEL 3   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-         &trans   &bt BT_SEL 0   &trans         &trans         &trans   &trans      &trans   &trans                     &trans   &trans 
-            >;
-        };
+        layer_5 { bindings = <
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+              &trans &trans &trans &trans &trans &trans   &trans &trans &trans &trans
+        >; };
 
+        layer_6 { bindings = <
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans                 &trans &trans &trans &trans &trans &trans
+              &trans &trans &trans &trans &trans &trans   &trans &trans &trans &trans
+        >; };
 
-        layer_5 {
-            bindings = <
-&trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-&trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-&trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-         &trans   &trans   &trans   &trans   &trans   &trans      &trans   &trans                     &trans   &trans       
-            >;
-        };
-
-
-        layer_6 {
-            bindings = <
-&trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-&trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-&trans   &trans   &trans   &trans   &trans   &trans                        &trans   &trans   &trans   &trans   &trans   &trans
-         &trans   &trans   &trans   &trans   &trans   &trans      &trans   &trans                     &trans   &trans
-            >;
-        };
-
-        // NICOLA (親指シフト / 同時打鍵) 入力レイヤー = layer 7。
-        //  文字キー = &ni <QWERTYキーコード>（エンジンがかなへ変換して送出）。
-        //  左親指 pos40 = &ni SPACE（単独打鍵=Space, 押しながら=左親指シフト）。
-        //  右親指 pos42 = &ni RET （単独打鍵=Enter, 押しながら=右親指シフト）。
-        //  英数へ戻す = pos39(無変換) &to_layer_0 LANG2（IME OFF + layer 0）。
-        //  &trans はベース(layer 0)へフォールスルー → Ctrl/GUI/Alt/Tab/括弧/BSPC/DEL は素通り。
-        //  ※keyball39 の _NICOLA 相当。読点「、」等の出力差はモジュール(zmk-nicola)側で処理。
+        // ---- 7: NICOLA (親指シフト/同時打鍵) -----------------------------
+        // 文字 = &ni <QWERTYキー>(エンジンがかなへ)。40=&ni SPACE(単独Space),
+        //   43=&ni RET(単独Enter)。41/42 は &trans で base の L1/L2 を継承し、
+        //   FUNC_1の か / FUNC_2の 英 で ON/OFF できる。読点「、」はモジュール側で処理。
         nicola_layer {
             bindings = <
-&trans   &ni Q    &ni W    &ni E              &ni R       &ni T                                       &ni Y     &ni U    &ni I       &ni O     &ni P      &trans
-&trans   &ni A    &ni S    &ni D              &ni F       &ni G                                       &ni H     &ni J    &ni K       &ni L     &ni SEMI   &trans
-&trans   &ni Z    &ni X    &ni C              &ni V       &ni B                                       &ni N     &ni M    &ni COMMA   &ni DOT   &ni FSLH   &trans
-         &trans   &trans   &trans   &to_layer_0 LANG2   &ni SPACE   &trans      &ni RET   &trans                          &trans    &trans
+&trans  &ni Q   &ni W   &ni E   &ni R   &ni T                                    &ni Y   &ni U   &ni I      &ni O    &ni P      &trans
+&trans  &ni A   &ni S   &ni D   &ni F   &ni G                                    &ni H   &ni J   &ni K      &ni L    &ni SEMI   &trans
+&trans  &ni Z   &ni X   &ni C   &ni V   &ni B                                    &ni N   &ni M   &ni COMMA  &ni DOT  &ni FSLH   &trans
+                &trans  &trans  &trans  &trans  &ni SPACE  &trans    &trans  &ni RET  &trans  &trans
             >;
-
             sensor-bindings = <&inc_dec_kp PG_UP PAGE_DOWN>;
         };
     };
