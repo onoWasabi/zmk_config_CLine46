@@ -49,6 +49,6 @@ manifest:
     # なので v0.3-branch 向けの本モジュールがそのままビルドできる想定。
     - name: zmk-nicola
       remote: onoWasabi
-      revision: 98e1046f4af417e132dbc582e68d70670ac0e003
+      revision: 2b189714fad85d06b1652d96f9d501615141d472
   self:
     path: config
