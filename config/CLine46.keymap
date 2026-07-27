@@ -28,7 +28,9 @@
 // ⚠ 実機調整項目(既知): JIS記号(a2j相当)はZMKに変換層が無く ANSIグリフの keycode を
 //   そのまま送る。JIS認識Windowsで記号がズレる場合は該当キーを JIS 相当へ要調整。
 //   AML(ボール移動で自動マウス面)は cormoran モジュール都合でCLine46では不可 →
-//   BALL面(3)は右親指 pos44(&mo 3)長押しで手動。スクロールは要別途調整。
+//   BALL面(3)は【左小指最下段 pos24(&mo 3)】長押しで手動(押しながら右手でボール操作)。
+//   ※pos24は元は外側列の左Shift。左Shiftは pos35/pos45(右)に残る。スクロールは要別途調整。
+//   NICOLA中に修飾キー(Ctrl/Alt/GUI/Shift)を併用すると生QWERTYを送る(モジュール側で処理)。
 // =============================================================================
 
 &mt {
@@ -58,14 +60,14 @@
         compatible = "zmk,keymap";
 
         // ---- 0: QWERTY (英数・ベース) -------------------------------------
-        // 親指: 40=Space / 43=Enter(単独)。41=L1(FUNC_1)/42=L2(FUNC_2) 押している間。
-        //       44=&mo3(BALL/マウス面, AML代替の手動入口)。
+        // 親指: 40=Space / 43=Enter(単独)。41=L1(FUNC_1)/42=L2(FUNC_2) 押している間。44=Del。
+        //       BALL(マウス)面の入口 = 左小指最下段 pos24 = &mo 3(長押し)。
         default_layer {
             bindings = <
 &kp TAB     &kp Q      &kp W      &kp E      &kp R      &kp T                                          &kp Y      &kp U      &kp I      &kp O      &kp P      &kp TAB
 &kp LCTRL   &kp A      &kp S      &kp D      &kp F      &kp G                                          &kp H      &kp J      &kp K      &kp L      &kp SEMI   &kp LCTRL
-&kp LSHIFT  &kp Z      &kp X      &kp C      &kp V      &kp B                                          &kp N      &kp M      &kp COMMA  &kp DOT    &kp FSLH   &kp RSHIFT
-                       &kp LCTRL  &kp LGUI   &kp LALT   &kp BSPC   &kp SPACE  &mo 1        &mo 2  &kp RET   &mo 3      &kp RSHIFT
+&mo 3       &kp Z      &kp X      &kp C      &kp V      &kp B                                          &kp N      &kp M      &kp COMMA  &kp DOT    &kp FSLH   &kp RSHIFT
+                       &kp LCTRL  &kp LGUI   &kp LALT   &kp BSPC   &kp SPACE  &mo 1        &mo 2  &kp RET   &kp DEL    &kp RSHIFT
             >;
             sensor-bindings = <&inc_dec_kp PG_UP PAGE_DOWN>;
         };
