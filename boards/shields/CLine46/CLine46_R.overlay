@@ -74,9 +74,28 @@
         <&zip_temp_layer 4 650>;
 
 
+    // ★子ノード(layer override)は「DTS の記述順に走査し、最初にマッチした1つだけ適用して
+    //   打ち切り」(zmk input_listener.c: process_next 未指定なら return 0)。よって
+    //   横スクロール面(7)を縦(5)より前に置くこと。薬指(&mo 5)＋小指(&mo 7)の同時ホールドで
+    //   7 が優先され、小指を離すと 5 に戻る。
+
+    // 横スクロール: layer7(HSCROLL)。keyball の「薬指＋小指ホールドで左右」と同じ操作感。
+    hscroller {
+        layers = <7>;
+        input-processors =
+            <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>,       //Y軸反転(縦と同じ前処理)
+            <&zip_xy_to_scroll_mapper>,                         //スクロールモードに変更
+            // XY_SWAP でホイール↔横ホイールを入替え、その後 X_INVERT が「入替え後のコード
+            // (=横ホイール)」に効く(transform は swap→invert の順)。結果、ボールを下へ
+            // 転がすと右へスクロール(keyball の Shift+スクロールと同じ向き)。
+            <&zip_scroll_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>,
+            <&zip_scroll_scaler 1 8>;                           //スクロール量を1/8倍
+    };
+
+    // 縦スクロール: layer5(SCROLL)。薬指 &mo 5 を押している間。
     scroller {
         layers = <5>;
-        input-processors = 
+        input-processors =
             // <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,        //X軸とY軸の入れ替え
             // <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,       //X軸反転
             <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>,       //Y軸反転

@@ -122,11 +122,13 @@
             >;
         };
 
-        // ---- 5: SCROLL (この面が有効な間ボール=スクロール, overlay scroller layers=<5>) -----
+        // ---- 5: SCROLL (この面が有効な間ボール=縦スクロール, overlay scroller layers=<5>) --
+        // 22(右小指・MB2の2つ右)を追加ホールドすると layer7(HSCROLL)=左右スクロール。
+        // keyball の _BALL 面(人差し=MB1/中指=MB2/薬指=スクロール/小指=追加で左右)と同じ操作感。
         SCROLL {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &mo 7   &trans
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
                 &trans  &trans  &trans  &trans  &trans  &trans   &trans  &trans  &trans  &trans
             >;
@@ -143,6 +145,19 @@
 &trans  &bt BT_SEL 0  &bt BT_SEL 1    &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &bt BT_CLR    &bt BT_CLR_ALL  &trans        &trans        &trans                        &trans  &trans  &trans  &trans  &trans  &trans
                       &trans          &trans        &trans        &trans   &trans  &trans   &trans  &trans   &trans  &trans
+            >;
+        };
+
+        // ---- 7: HSCROLL (この面が有効な間ボール=左右スクロール) ------------------
+        // 入口 = SCROLL(5) の 22 を追加ホールド。全透過で、効果は overlay の
+        // hscroller(layers=<7>) 側にある。子ノードは記述順で最初にマッチした1つだけ
+        // 適用されるため、hscroller を scroller より前に置いてある(5と7が同時に有効でも7が勝つ)。
+        HSCROLL {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
+                &trans  &trans  &trans  &trans  &trans  &trans   &trans  &trans  &trans  &trans
             >;
         };
     };
