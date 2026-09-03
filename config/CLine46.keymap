@@ -30,7 +30,12 @@
 //
 // NICOLA on/off: FUNC_1 の pos42(か)=&to 1 / FUNC_2 の pos41(英)=&to 0。単独Space=pos40, Enter=pos43。
 // 修飾キー(Ctrl/Alt/GUI/Shift)併用時は生QWERTYを送出(zmk-nicola モジュール側)。
-// 記号は ANSIグリフ送出(a2j非再現)= JIS実機で要確認。
+//
+// 記号 = a2j 再現(2026-09-03): keyball39 の a2j/translate_ansi_to_jis.c と同じ変換を
+//   mod-morph(&mm_*) と LS() 直書きで実装。JIS認識Windows で ANSI と同じグリフが出る。
+//   例: Shift+2=@ / Shift+6=^ / Shift+7=& / '(base)+"(Shift) / =(base)++(Shift) / `+~ / -+_ 。
+//   Shift+8/9 だけは 39 と同様に素通し(JISネイティブの ( ) を使う)。morph は Shift を
+//   マスクしてから差し替え先を送るので、@ のような「JISでは無Shift」のキーも正しく出る。
 // =============================================================================
 
 &mt {
@@ -44,6 +49,72 @@
     //    BLE 到着時刻でタイムスタンプされる。既定 timeout 50ms に対し接続間隔 15ms
     //    (CONFIG_BT_PERIPHERAL_PREF_*_INT=12)＋ジッタで間に合わず、実用上ほぼ発火しなかった。
     //    → FUNC_2(layer3) の pos11 に &mo 6 を置く方式へ(判定窓なし・同一半身)。
+
+    // ==== a2j 再現(JIS記号モーフ) ====
+    // keyball39 の translate_ansi_to_jis.c と同表。各 morph は「素押し / Shift押し」で
+    // 送るキーを切替え、Shift はマスク(LS() 指定分だけ明示的に付く)。
+    behaviors {
+        mm_semi: mm_semi {   // ; / :(JISは QUOT 位置・無Shift)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp SEMI>, <&kp SQT>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_n2: mm_n2 {       // 2 / @(JISは LBKT 位置・無Shift)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N2>, <&kp LBKT>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_n6: mm_n6 {       // 6 / ^(JISは EQUAL 位置・無Shift)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N6>, <&kp EQUAL>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_n7: mm_n7 {       // 7 / &(JISは Shift+6)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N7>, <&kp LS(N6)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_n0: mm_n0 {       // 0 / )(JISは Shift+9)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp N0>, <&kp LS(N9)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_eq: mm_eq {       // = (JIS Shift+MINUS) / + (JIS Shift+SEMI)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LS(MINUS)>, <&kp LS(SEMI)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_bslh: mm_bslh {   // \ (JIS INT3=¥) / | (JIS Shift+INT3)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp INT3>, <&kp LS(INT3)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_sqt: mm_sqt {     // ' (JIS Shift+7) / " (JIS Shift+2)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LS(N7)>, <&kp LS(N2)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_grv: mm_grv {     // ` (JIS Shift+LBKT=@位置) / ~ (JIS Shift+EQUAL)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LS(LBKT)>, <&kp LS(EQUAL)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        mm_mins: mm_mins {   // - / _ (JIS Shift+INT1=ろ)
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp MINUS>, <&kp LS(INT1)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+    };
 
     macros {
         to_layer_0: to_layer_0 {
@@ -68,7 +139,7 @@
         default_layer {
             bindings = <
 &kp TAB     &kp Q      &kp W      &kp E      &kp R      &kp T                                          &kp Y      &kp U      &kp I      &kp O      &kp P      &kp TAB
-&kp LCTRL   &kp A      &kp S      &kp D      &kp F      &kp G                                          &kp H      &kp J      &kp K      &kp L      &kp SEMI   &kp LCTRL
+&kp LCTRL   &kp A      &kp S      &kp D      &kp F      &kp G                                          &kp H      &kp J      &kp K      &kp L      &mm_semi   &kp LCTRL
 &kp LCTRL   &kp Z      &kp X      &kp C      &kp V      &kp B                                          &kp N      &kp M      &kp COMMA  &kp DOT    &kp FSLH   &kp RSHIFT
                        &kp LCTRL  &kp LGUI   &kp LALT   &kp BSPC   &kp SPACE  &mo 2        &mo 3  &kp RET   &kp DEL    &kp RSHIFT
             >;
@@ -89,47 +160,55 @@
         };
 
         // ---- 2: FUNC_1 (数字・記号・矢印)  入口=41(&mo 2) ----------------
+        // 右上段の先頭2つ = F6/F7 (ATOK: ひらがな変換 / 全角カタカナ変換)。
+        // 旧 ( ) は Shift+8/9 で出せるため撤去 (keyball39 の FUNC_1 と同じ変更)。
+        // 記号は a2j 再現(&mm_* / LS() 直書き)。N8 は素通し(Shift+8=JISの「(」)。
         FUNC_1 {
             bindings = <
-&trans  &kp QMARK  &kp N7     &kp N8     &kp RBKT   &kp NON_US_HASH                                 &kp LPAR   &kp RPAR   &kp EQUAL  &kp BSLH   &kp DEL    &trans
-&trans  &trans     &kp N4     &kp N5     &kp N6     &kp COLON                                       &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &kp SQT    &trans
-&trans  &trans     &kp N1     &kp N2     &kp N3     &kp UNDERSCORE                                  &kp PG_DN  &kp PG_UP  &kp MINUS  &kp GRAVE  &kp ASTERISK  &trans
-                   &trans     &kp N0     &kp DOT    &trans     &trans     &trans     &to_nicola LANG1  &kp RSHIFT  &trans  &trans
+&trans  &kp QMARK  &mm_n7     &kp N8     &kp RBKT   &kp NON_US_HASH                                 &kp F6     &kp F7     &mm_eq     &mm_bslh   &kp DEL    &trans
+&trans  &trans     &kp N4     &kp N5     &mm_n6     &kp SQT                                         &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &mm_sqt    &trans
+&trans  &trans     &kp N1     &mm_n2     &kp N3     &kp LS(INT1)                                    &kp PG_DN  &kp PG_UP  &mm_mins   &mm_grv    &kp LS(SQT)  &trans
+                   &trans     &mm_n0     &kp DOT    &trans     &trans     &trans     &to_nicola LANG1  &kp RSHIFT  &trans  &trans
             >;
             sensor-bindings = <&inc_dec_kp PG_UP PAGE_DOWN>;
         };
 
         // ---- 3: FUNC_2 (数字/Fキー)  入口=42(&mo 3) ---------------------
-        // pos0=ESC。41=英(NICOLA OFF=&to 0)。40=Alt。11=SYSTEM(BT)面へ(&mo 6, 押している間だけ)。
+        // pos0=ESC(角)・pos1=ESC(39の1=Esc と同位置。2026-09-03 一致化)。
+        // 41=英(NICOLA OFF=&to 0)。40=Alt。11=SYSTEM(BT)面へ(&mo 6, 押している間だけ)。
+        // 15(G位置)=- / 25(B位置)=+ はテンキー記号。a2j 再現で JIS 送出。
         FUNC_2 {
             bindings = <
-&kp ESC   &trans     &kp N7     &kp N8     &kp N9     &trans                                         &trans     &kp F7     &kp F8     &kp F9     &kp TAB    &mo 6
-&trans    &kp TAB    &kp N4     &kp N5     &kp N6     &kp MINUS                                      &trans     &kp F4     &kp F5     &kp F6     &kp LCTRL  &trans
-&trans    &trans     &kp N1     &kp N2     &kp N3     &kp PLUS                                       &kp HOME   &kp F1     &kp F2     &kp F3     &kp RSHIFT &trans
-                     &trans     &kp N0     &kp DOT    &trans     &kp LALT  &to_layer_0 LANG2   &trans  &trans   &trans     &trans
+&kp ESC   &kp ESC    &mm_n7     &kp N8     &kp N9     &trans                                         &trans     &kp F7     &kp F8     &kp F9     &kp TAB    &mo 6
+&trans    &kp TAB    &kp N4     &kp N5     &mm_n6     &mm_mins                                       &trans     &kp F4     &kp F5     &kp F6     &kp LCTRL  &trans
+&trans    &trans     &kp N1     &mm_n2     &kp N3     &kp LS(SEMI)                                   &kp HOME   &kp F1     &kp F2     &kp F3     &kp RSHIFT &trans
+                     &trans     &mm_n0     &kp DOT    &trans     &kp LALT  &to_layer_0 LANG2   &trans  &trans   &trans     &trans
             >;
         };
 
         // ---- 4: MOUSE (AMLの自動先) -------------------------------------
         // ボール移動で自動有効(~1s)。マウス以外は透過(打鍵はbaseへ素通り)。
-        //   19=左クリック / 20=右クリック / 21(MB2の右)=長押しスクロール(&mo 5)。Boot撤去。
+        //   人差し指=MB1 / 中指=MB2 / 薬指=長押しスクロール(&mo 5) / 小指=RShift。
+        //   39 と同じくホーム段(19-22)と下段(31-34)の二重配置(お試し用・決まったら片方を▽に)。
+        //   RShift は修飾キーなので押しても AML は外れない(39 の 20/30=Sft と同じ)。Boot撤去。
         MOUSE {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans     &trans     &trans   &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &mkp MB1   &mkp MB2   &mo 5    &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans     &trans     &trans   &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans     &trans     &trans   &trans      &trans
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &mkp MB1   &mkp MB2   &mo 5    &kp RSHIFT  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &mkp MB1   &mkp MB2   &mo 5    &kp RSHIFT  &trans
                 &trans  &trans  &trans  &trans  &trans  &trans   &trans  &trans   &trans  &trans
             >;
         };
 
         // ---- 5: SCROLL (この面が有効な間ボール=縦スクロール, overlay scroller layers=<5>) --
         // 22(右小指・MB2の2つ右)を追加ホールドすると layer7(HSCROLL)=左右スクロール。
+        // 下段ルート(33でスクロール中)用に 34(下段小指)にも &mo 7 を配置(MOUSE二重配置と対)。
         // keyball の _BALL 面(人差し=MB1/中指=MB2/薬指=スクロール/小指=追加で左右)と同じ操作感。
         SCROLL {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &mo 7   &trans
-&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &mo 7   &trans
                 &trans  &trans  &trans  &trans  &trans  &trans   &trans  &trans  &trans  &trans
             >;
         };
