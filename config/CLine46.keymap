@@ -54,6 +54,16 @@
     // keyball39 の translate_ansi_to_jis.c と同表。各 morph は「素押し / Shift押し」で
     // 送るキーを切替え、Shift はマスク(LS() 指定分だけ明示的に付く)。
     behaviors {
+        // Boot only after 1.5 seconds. Other keys cannot force an early hold.
+        // Preserve the event source so Q boots the left half and P the right.
+        boot_hold: boot_hold {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <1500>;
+            bindings = <&bootloader>, <&none>;
+        };
+
         mm_semi: mm_semi {   // ; / :(JISは QUOT 位置・無Shift)
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
@@ -190,10 +200,11 @@
         // ボール移動で自動有効(~1s)。マウス以外は透過(打鍵はbaseへ素通り)。
         //   人差し指=MB1 / 中指=MB2 / 薬指=長押しスクロール(&mo 5) / 小指=RShift。
         //   39 と同じくホーム段(19-22)と下段(31-34)の二重配置(お試し用・決まったら片方を▽に)。
-        //   RShift は修飾キーなので押しても AML は外れない(39 の 20/30=Sft と同じ)。Boot撤去。
+        //   RShift は修飾キーなので押しても AML は外れない(39 の 20/30=Sft と同じ)。
+        //   pos1(Q)/pos10(P)=1.5秒長押しBoot。短押しは無反応。押した側の半身をDFUへ。
         MOUSE {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans     &trans     &trans   &trans      &trans
+&trans  &boot_hold 0 0  &trans  &trans  &trans  &trans               &trans  &trans     &trans     &trans   &boot_hold 0 0  &trans
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &mkp MB1   &mkp MB2   &mo 5    &kp RSHIFT  &trans
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &mkp MB1   &mkp MB2   &mo 5    &kp RSHIFT  &trans
                 &trans  &trans  &trans  &trans  &trans  &trans   &trans  &trans   &trans  &trans
