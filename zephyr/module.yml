@@ -1,4 +1,5 @@
 name: CLine45
 build:
+  cmake: .
   settings:
     board_root: .

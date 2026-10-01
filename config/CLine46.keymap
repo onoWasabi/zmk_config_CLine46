@@ -25,7 +25,7 @@
 //
 // トラックボール:
 //   ・通常(base): ボール=カーソル(常時)。
-//   ・AML: ボールを動かすと layer4(MOUSE) が自動で ~1s 有効(clicksが出る)。→ overlay の zip_temp_layer。
+//   ・AML: ボールを動かすと layer4(MOUSE) が自動で 650ms 有効(clicksが出る)。→ overlay の zip_temp_layer。
 //   ・スクロール: MOUSE面の pos21(MB2の右)を長押し=&mo 5 → layer5 有効中はボール=スクロール(overlay scroller layers=<5>)。
 //
 // NICOLA on/off: FUNC_1 の pos42(か)=&to 1 / FUNC_2 の pos41(英)=&to 0。単独Space=pos40, Enter=pos43。
@@ -183,21 +183,21 @@
             sensor-bindings = <&inc_dec_kp PG_UP PAGE_DOWN>;
         };
 
-        // ---- 3: FUNC_2 (数字/Fキー)  入口=42(&mo 3) ---------------------
+        // ---- 3: FUNC_2 (数字/Fキー・クリック/スクロール)  入口=42(&mo 3) ---------------------
         // pos0=ESC(角)・pos1=ESC(39の1=Esc と同位置。2026-09-03 一致化)。
         // 41=英(NICOLA OFF=&to 0)。40=Alt。11=SYSTEM(BT)面へ(&mo 6, 押している間だけ)。
         // 15(G位置)=- / 25(B位置)=+ はテンキー記号。a2j 再現で JIS 送出。
         FUNC_2 {
             bindings = <
 &kp ESC   &kp ESC    &mm_n7     &kp N8     &kp N9     &trans                                         &trans     &kp F7     &kp F8     &kp F9     &kp TAB    &mo 6
-&trans    &kp TAB    &kp N4     &kp N5     &mm_n6     &mm_mins                                       &trans     &kp F4     &kp F5     &kp F6     &kp LCTRL  &trans
+&trans    &kp TAB    &kp N4     &kp N5     &mm_n6     &mm_mins                                       &trans     &mkp MB1   &mkp MB2   &mo 8      &kp LCTRL  &trans
 &trans    &trans     &kp N1     &mm_n2     &kp N3     &kp LS(SEMI)                                   &kp HOME   &kp F1     &kp F2     &kp F3     &kp RSHIFT &trans
                      &trans     &mm_n0     &kp DOT    &trans     &kp LALT  &to_layer_0 LANG2   &trans  &trans   &trans     &trans
             >;
         };
 
         // ---- 4: MOUSE (AMLの自動先) -------------------------------------
-        // ボール移動で自動有効(~1s)。マウス以外は透過(打鍵はbaseへ素通り)。
+        // ボール移動で自動有効(650ms)。マウス以外は透過(打鍵はbaseへ素通り)。
         //   人差し指=MB1 / 中指=MB2 / 薬指=長押しスクロール(&mo 5) / 小指=RShift。
         //   39 と同じくホーム段(19-22)と下段(31-34)の二重配置(お試し用・決まったら片方を▽に)。
         //   RShift は修飾キーなので押しても AML は外れない(39 の 20/30=Sft と同じ)。
@@ -248,6 +248,17 @@
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans                       &trans  &trans  &trans  &trans  &trans  &trans
                 &trans  &trans  &trans  &trans  &trans  &trans   &trans  &trans  &trans  &trans
+            >;
+        };
+
+        // ---- 8: FUNC_SCROLL: FUNC_2 pos21 held; keep pos22=Ctrl. ----
+        // Horizontal scroll: hold an existing right Shift position (34/35/45).
+        FUNC_SCROLL {
+            bindings = <
+&trans &trans &trans &trans &trans &trans   &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans   &trans &trans &trans &trans &trans &trans
+&trans &trans &trans &trans &trans &trans   &trans &trans &trans &trans &mo 7  &mo 7
+              &trans &trans &trans &trans &trans &trans   &trans &trans &trans &mo 7
             >;
         };
     };

@@ -94,7 +94,7 @@
 
     // 縦スクロール: layer5(SCROLL)。薬指 &mo 5 を押している間。
     scroller {
-        layers = <5>;
+        layers = <5 8>;
         input-processors =
             // <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,        //X軸とY軸の入れ替え
             // <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,       //X軸反転
@@ -104,4 +104,13 @@
             //<&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>,   //スクロールのY軸反転
             <&zip_scroll_scaler 1 8>;                           //スクロール量を1/8倍
     };
+
+    // FUNC cursor motion uses the existing runtime settings and axis mapping,
+    // but never runs zip_temp_layer. Scroll overrides above still take priority.
+    function_cursor {
+        layers = <2 3>;
+        input-processors = <&mouse_runtime_input_processor>,
+            <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>;
+    };
+
 };
