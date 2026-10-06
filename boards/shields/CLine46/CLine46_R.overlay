@@ -92,10 +92,11 @@
             <&zip_scroll_scaler 1 8>;                           //スクロール量を1/8倍
     };
 
-    // 縦スクロール: layer5(SCROLL)。薬指 &mo 5 を押している間。
+    // 縦スクロール: layer5(SCROLL)/8(FUNC_SCROLL)。薬指だけなら縦方向に固定。
     scroller {
         layers = <5 8>;
         input-processors =
+            <&zip_x_scaler 0 1>,                               //横成分をゼロにして横スクロールを防ぐ
             // <&zip_xy_transform INPUT_TRANSFORM_XY_SWAP>,        //X軸とY軸の入れ替え
             // <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,       //X軸反転
             <&zip_xy_transform INPUT_TRANSFORM_Y_INVERT>,       //Y軸反転

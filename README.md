@@ -17,6 +17,10 @@ Actual keyboard/BLE behavior still requires hardware verification.
 
 See `keymap_design_CLine46.md` for the layout.
 
+## Vertical scroll lock (2026-10-06)
+
+Ring-finger scrolling (MOUSE layer 5 and FUNC_SCROLL layer 8) now zeros the ball's X motion before wheel conversion, preventing accidental horizontal scrolling. Vertical direction and speed are unchanged. The additional-key horizontal gesture (layer 7) retains its existing behavior.
+
 ## Boot mode (2026-10-01)
 
 Move the ball to activate MOUSE, then hold position 1 (Q) or 10 (P) for 1.5 seconds to enter DFU on the left or right half respectively. A shorter press does nothing. Flash the matching new UF2 on both halves. Other key presses cannot trigger boot early. Physical double-reset remains available.
